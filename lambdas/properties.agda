@@ -8,15 +8,15 @@ open import Data.Nat using (ℕ; zero; suc)
 Normal : Term → Set
 Normal t = ∀ {t′ : Term} → ¬ (t —→ t′)
 
+Stuck : Term → Set
+Stuck t = Normal t × ¬ Value t
+
 -- values-are-normal : ∀ {t : Term} → Value t → Normal t
 -- values-are-normal (V-bool BV-true)  ()
 -- values-are-normal (V-bool BV-false) ()
 -- values-are-normal (V-nat NV-zero)   ()
 -- values-are-normal (V-nat (NV-suc n-nv)) (reduce-suc n-step) =
 --     values-are-normal (V-nat n-nv) n-step
-
-Stuck : Term → Set
-Stuck t = Normal t × ¬ Value t
 
 -- bool-vals : ∀ {t : Term} → Value t → ⊢ t ⦂ Bool → BoolValue t
 -- bool-vals (V-bool BV-true)   t-bool = BV-true

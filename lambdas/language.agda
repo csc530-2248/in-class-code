@@ -65,13 +65,13 @@ _[_:=_] : Term → Id → Term → Term
 
 infix  4 _—→_
 data _—→_ : Term → Term → Set where
-    if-true : ∀ {thn els : Term}
-        → `if `true thn els —→ thn
-    if-false : ∀ {thn els : Term}
-        → `if `false thn els —→ els
-    reduce-if : ∀ {cnd cnd′ thn els : Term}
-        → cnd —→ cnd′
-        → `if cnd thn els —→ `if cnd′ thn els
+    if-true : ∀ {th el : Term}
+        → `if `true th el —→ th
+    if-false : ∀ {th el : Term}
+        → `if `false th el —→ el
+    reduce-if : ∀ {c c′ th el : Term}
+        → c —→ c′
+        → `if c th el —→ `if c′ th el
     reduce-suc : ∀ {n n′ : Term}
         → n —→ n′
         → `suc n —→ `suc n′
@@ -102,7 +102,6 @@ data _—→*_ : Term → Term → Set where
     step—→ : ∀ (t : Term) {t₁ t₂ : Term}
         → t₁ —→* t₂
         → t  —→  t₁
-          ---------
         → t  —→* t₂
 
 pattern _—→⟨_⟩_ t t—→t₁ t₁—→*t₂ = step—→ t t₁—→*t₂ t—→t₁
@@ -115,17 +114,14 @@ data ⊢_⦂_ : Term → Type → Set where
     ⊢true  : ⊢ `true ⦂ Bool
     ⊢false : ⊢ `false ⦂ Bool
     ⊢if    : ∀ {c th el : Term} {T : Type}
-           → ⊢ c ⦂ Bool
-           → ⊢ th ⦂ T
-           → ⊢ el ⦂ T
-             -----------------
-           → ⊢ `if c th el ⦂ T
+        → ⊢ c ⦂ Bool
+        → ⊢ th ⦂ T
+        → ⊢ el ⦂ T
+        → ⊢ `if c th el ⦂ T
     ⊢zero  : ⊢ `zero ⦂ Nat
     ⊢suc   : ∀ {n : Term}
-           → ⊢ n ⦂ Nat
-             --------------
-           → ⊢ `suc n ⦂ Nat
+        → ⊢ n ⦂ Nat
+        → ⊢ `suc n ⦂ Nat
     ⊢zero? : ∀ {n : Term}
-           → ⊢ n ⦂ Nat
-             -----------------
-           → ⊢ `zero? n ⦂ Bool
+        → ⊢ n ⦂ Nat
+        → ⊢ `zero? n ⦂ Bool

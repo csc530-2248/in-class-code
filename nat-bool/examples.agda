@@ -40,7 +40,6 @@ suc-true-stuck = suc-true-normal , suc-true-not-val
 _ : `if `true three five —→* three
 _ = begin `if `true three five —→⟨ if-true ⟩ three ∎
 
-
 _ : `if (`zero? three) three five —→* five
 _ = begin
         `if (`zero? three) three five
