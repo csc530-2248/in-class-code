@@ -48,20 +48,20 @@ data Value : Term → Set where
 
 infix 9 _[_:=_]
 _[_:=_] : Term → Id → Term → Term
-`true [ y := V ] = `true
-`false [ y := V ] = `false
-`zero [ y := V ] = `zero
-(`if c th el) [ y := V ] =
+`true          [ y := V ] = `true
+`false         [ y := V ] = `false
+`zero          [ y := V ] = `zero
+(`if c th el)  [ y := V ] =
     `if (c [ y := V ]) (th [ y := V ]) (el [ y := V ])
-(`suc n) [ y := V ] = `suc (n [ y := V ])
-(`zero? n) [ y := V ] = `zero? (n [ y := V ])
-(func · arg) [ y := V ] = (func [ y := V ]) · (arg [ y := V ])
-(` x) [ y := V ] with x ≟ y
+(`suc n)       [ y := V ] = `suc (n [ y := V ])
+(`zero? n)     [ y := V ] = `zero? (n [ y := V ])
+(func · arg)   [ y := V ] = (func [ y := V ]) · (arg [ y := V ])
+(` x)          [ y := V ] with x ≟ y
 ... | yes _ = V
 ... | no  _ = ` x
-(`λ x ⦂ A ⇒ body) [ y := V ] with x ≟ y
-... | yes _ = `λ x ⦂ A ⇒ body
-... | no  _ = `λ x ⦂ A ⇒ (body [ y := V ])
+(`λ x ⦂ A ⇒ b) [ y := V ] with x ≟ y
+... | yes _ = `λ x ⦂ A ⇒ b
+... | no  _ = `λ x ⦂ A ⇒ (b [ y := V ])
 
 infix  4 _—→_
 data _—→_ : Term → Term → Set where
