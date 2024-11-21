@@ -1,9 +1,10 @@
 module lambdas.properties where
-
 open import lambdas.language
-open import Relation.Nullary using (¬_; contradiction)
+
 open import Data.Product using (_×_; _,_)
 open import Data.Nat using (ℕ; zero; suc)
+
+open import Relation.Nullary using (¬_; contradiction)
 
 Normal : Term → Set
 Normal t = ∀ {t′ : Term} → ¬ (t —→ t′)

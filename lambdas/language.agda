@@ -1,7 +1,7 @@
 module lambdas.language where
 
--- _\?=_
 open import Data.String using (String; _≟_)
+
 open import Relation.Nullary using (yes; no)
 
 Id = String

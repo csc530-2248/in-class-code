@@ -1,7 +1,9 @@
 module lambdas.examples where
 open import lambdas.language
 open import lambdas.properties
+
 open import Data.Product using (_,_)
+
 open import Relation.Nullary using (¬_)
 
 three : Term
