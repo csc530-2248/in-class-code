@@ -3,6 +3,8 @@ module lambdas.language where
 open import Data.String using (String; _≟_)
 
 open import Relation.Nullary using (yes; no)
+open import Relation.Binary.PropositionalEquality
+    using (_≡_; _≢_; refl)
 
 Id = String
 
@@ -89,6 +91,7 @@ data _—→_ : Term → Term → Set where
         → Value func
         → arg —→ arg′
         → func · arg —→ func · arg′
+    -- β-reduction
     subst : {x : Id} {A : Type} {body arg : Term}
         → Value arg
         → (`λ x ⦂ A ⇒ body) · arg —→ body [ x := arg ]
@@ -109,19 +112,42 @@ pattern _—→⟨_⟩_ t t—→t₁ t₁—→*t₂ = step—→ t t₁—→*
 begin_ : ∀ {t t₁} → t —→* t₁ → t —→* t₁
 begin s = s
 
-infix  4 ⊢_⦂_
-data ⊢_⦂_ : Term → Type → Set where
-    ⊢true  : ⊢ `true ⦂ Bool
-    ⊢false : ⊢ `false ⦂ Bool
-    ⊢if    : ∀ {c th el : Term} {T : Type}
-        → ⊢ c ⦂ Bool
-        → ⊢ th ⦂ T
-        → ⊢ el ⦂ T
-        → ⊢ `if c th el ⦂ T
-    ⊢zero  : ⊢ `zero ⦂ Nat
-    ⊢suc   : ∀ {n : Term}
-        → ⊢ n ⦂ Nat
-        → ⊢ `suc n ⦂ Nat
-    ⊢zero? : ∀ {n : Term}
-        → ⊢ n ⦂ Nat
-        → ⊢ `zero? n ⦂ Bool
+infixl 6 _,_⦂_
+data Context : Set where
+    ∅     : Context
+    _,_⦂_ : Context → Id → Type → Context
+
+infix 4 _⦂_∈_
+data _⦂_∈_ : Id → Type → Context → Set where
+    here  : ∀ {Γ x A} → x ⦂ A ∈ Γ , x ⦂ A
+    there : ∀ {Γ x y A B}
+        → x ≢ y
+        → x ⦂ A ∈ Γ
+        → x ⦂ A ∈ Γ , y ⦂ B
+
+infix  4 _⊢_⦂_
+data _⊢_⦂_ : Context → Term → Type → Set where
+    ⊢true  : ∀ {Γ} → Γ ⊢ `true ⦂ Bool
+    ⊢false : ∀ {Γ} → Γ ⊢ `false ⦂ Bool
+    ⊢if    : ∀ {Γ} {c th el : Term} {T : Type}
+        → Γ ⊢ c ⦂ Bool
+        → Γ ⊢ th ⦂ T
+        → Γ ⊢ el ⦂ T
+        → Γ ⊢ `if c th el ⦂ T
+    ⊢zero  : ∀ {Γ} → Γ ⊢ `zero ⦂ Nat
+    ⊢suc   : ∀ {Γ} {n : Term}
+        → Γ ⊢ n ⦂ Nat
+        → Γ ⊢ `suc n ⦂ Nat
+    ⊢zero? : ∀ {Γ} {n : Term}
+        → Γ ⊢ n ⦂ Nat
+        → Γ ⊢ `zero? n ⦂ Bool
+    ⊢var   : ∀ {Γ x A}
+        → x ⦂ A ∈ Γ
+        → Γ ⊢ ` x ⦂ A
+    ⊢lam   : ∀ {Γ x b A B}
+        → Γ , x ⦂ A ⊢ b ⦂ B
+        → Γ ⊢ (`λ x ⦂ A ⇒ b) ⦂ A ⇒ B
+    ⊢app   : ∀ {Γ f a A B}
+        → Γ ⊢ f ⦂ A ⇒ B
+        → Γ ⊢ a ⦂ A
+        → Γ ⊢ f · a ⦂ B

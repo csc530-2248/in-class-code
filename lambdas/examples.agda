@@ -2,9 +2,12 @@ module lambdas.examples where
 open import lambdas.language
 open import lambdas.properties
 
+open import Data.Empty using (⊥)
 open import Data.Product using (_,_)
 
 open import Relation.Nullary using (¬_)
+open import Relation.Binary.PropositionalEquality
+    using (_≡_; _≢_; refl)
 
 three : Term
 three = `suc `suc `suc `zero
@@ -51,16 +54,22 @@ _ = begin
         five
     ∎
 
-⊢three : ⊢ three ⦂ Nat
+zero-is-nat : ∅ ⊢ `zero ⦂ Nat
+zero-is-nat = ⊢zero
+
+zero-is-nat-in-context : ∅ , "x" ⦂ Bool ⊢ `zero ⦂ Nat
+zero-is-nat-in-context = ⊢zero
+
+⊢three : ∅ ⊢ three ⦂ Nat
 ⊢three = ⊢suc (⊢suc (⊢suc ⊢zero))
 
-⊢five : ⊢ five ⦂ Nat
+⊢five : ∅ ⊢ five ⦂ Nat
 ⊢five = ⊢suc (⊢suc ⊢three)
 
-⊢prog1 : ⊢ (`if `true three five) ⦂ Nat
+⊢prog1 : ∅ ⊢ (`if `true three five) ⦂ Nat
 ⊢prog1 = ⊢if ⊢true ⊢three ⊢five
 
-¬⊢prog3 : ∀ {T : Type} → ¬ ⊢ `suc `true ⦂ T
+¬⊢prog3 : ∀ {Γ} {T : Type} → ¬ Γ ⊢ `suc `true ⦂ T
 ¬⊢prog3 (⊢suc ())
 
 nat-id : Term
@@ -71,3 +80,26 @@ use-nat-id = nat-id · three
 
 stuck-app : Term
 stuck-app = (` "f") · (` "x")
+
+_ : (` "x") [ "x" := three ] ≡ three
+_ = refl
+
+_ : (`λ "x" ⦂ Nat ⇒ (`if (`zero? (` "x")) three five)) · three —→* five
+_ = begin
+        (`λ "x" ⦂ Nat ⇒ `if (`zero? (` "x")) three five) · three
+    —→⟨ subst (V-nat (NV-suc (NV-suc (NV-suc NV-zero)))) ⟩
+        `if (`zero? three) three five
+    —→⟨ reduce-if (zero?-suc (NV-suc (NV-suc NV-zero))) ⟩
+        `if `false three five
+    —→⟨ if-false ⟩
+        five
+    ∎
+
+c1 : Context
+c1 = ∅ , "x" ⦂ Nat , "f" ⦂ Nat ⇒ Nat
+
+_ : "f" ⦂ Nat ⇒ Nat ∈ c1
+_ = here
+
+_ : "x" ⦂ Nat ∈ c1
+_ = there (λ ()) here
