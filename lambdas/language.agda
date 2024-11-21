@@ -46,7 +46,7 @@ data Value : Term → Set where
     V-nat  : ∀ {t : Term} → NatValue t → Value t
     V-lam  : ∀ {t : Term} → LamValue t → Value t
 
-infix 9 _[_:=_]
+infix 5 _[_:=_]
 _[_:=_] : Term → Id → Term → Term
 `true          [ y := V ] = `true
 `false         [ y := V ] = `false
