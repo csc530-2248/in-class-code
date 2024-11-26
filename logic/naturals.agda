@@ -81,8 +81,10 @@ suc-+ m n = refl
 -- base case:
 -- [✓] zero + n ≡ n
 -- [✓]          ≡ n + zero
-+-comm zero    n = trans (+-identityˡ n)
-                         (sym (+-identityʳ n))
++-comm zero    n = begin
+    zero + n ≡⟨ +-identityˡ n ⟩
+    n        ≡⟨ sym (+-identityʳ n) ⟩
+    n + zero ∎
 -- inductive step:
 -- [✓] (suc k) + n ≡ suc (k + n)
 -- [✓]             ≡ suc (n + k)
@@ -92,9 +94,6 @@ suc-+ m n = refl
     suc (k + n) ≡⟨ cong suc (+-comm k n) ⟩
     suc (n + k) ≡⟨ sym (+-suc n k) ⟩
     n + suc k   ∎
--- +-comm (suc k) n = trans (suc-+ k n)
---                          (trans (cong suc (+-comm k n))
---                                 (sym (+-suc n k)))
 
 -- FUTURE HOMEWORK!
 -- +-assoc : ∀ (m n p : ℕ) → (m + n) + p ≡ m + (n + p)
