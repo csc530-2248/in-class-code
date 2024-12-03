@@ -125,6 +125,10 @@ data _⦂_∈_ : Id → Type → Context → Set where
         → x ⦂ A ∈ Γ
         → x ⦂ A ∈ Γ , y ⦂ B
 
+infix  3 _⊆_
+_⊆_ : Context → Context → Set
+Γ ⊆ Δ = ∀ {x A} → x ⦂ A ∈ Γ → x ⦂ A ∈ Δ
+
 infix  4 _⊢_⦂_
 data _⊢_⦂_ : Context → Term → Type → Set where
     ⊢true  : ∀ {Γ} → Γ ⊢ `true ⦂ Bool

@@ -76,6 +76,41 @@ progress (⊢app ⊢f ⊢a) with progress ⊢f
 ...    | LV | step a-step = step (reduce-arg (V-lam LV) a-step)
 ...    | LV | done a-val  = step (subst a-val)
 
+∅⊆Γ : ∀ {Γ} → ∅ ⊆ Γ
+∅⊆Γ ()
+
+extend : ∀ {Γ Δ y A}
+    → Γ ⊆ Δ
+    → Γ , y ⦂ A ⊆ Δ , y ⦂ A
+extend Γ⊆Δ here = here
+extend Γ⊆Δ (there x≢y x∈Γ) = there x≢y (Γ⊆Δ x∈Γ)
+
+weaken : ∀ {Γ Δ t A}
+    → Γ ⊆ Δ
+    → Γ ⊢ t ⦂ A
+    → Δ ⊢ t ⦂ A
+weaken Γ⊆Δ ⊢true = ⊢true
+weaken Γ⊆Δ ⊢false = ⊢false
+weaken Γ⊆Δ ⊢zero = ⊢zero
+weaken Γ⊆Δ (⊢if Γ⊢c Γ⊢th Γ⊢el) = ⊢if (weaken Γ⊆Δ Γ⊢c) (weaken Γ⊆Δ Γ⊢th) (weaken Γ⊆Δ Γ⊢el)
+weaken Γ⊆Δ (⊢suc Γ⊢n) = ⊢suc (weaken Γ⊆Δ Γ⊢n)
+weaken Γ⊆Δ (⊢zero? Γ⊢n) = ⊢zero? (weaken Γ⊆Δ Γ⊢n)
+weaken Γ⊆Δ (⊢var x∈Γ) = ⊢var (Γ⊆Δ x∈Γ)
+weaken Γ⊆Δ (⊢lam Γ⊢b) = ⊢lam (weaken (extend Γ⊆Δ) Γ⊢b)
+weaken Γ⊆Δ (⊢app Γ⊢f Γ⊢a) = ⊢app (weaken Γ⊆Δ Γ⊢f) (weaken Γ⊆Δ Γ⊢a)
+
+drop : ∀ {Γ y A B} → Γ , y ⦂ A , y ⦂ B ⊆ Γ , y ⦂ B
+drop here = here
+drop (there y≢y here) = contradiction refl y≢y
+drop (there x≢y (there _ x∈left)) = there x≢y x∈left
+
+swap : ∀ {Γ y z A B}
+    → y ≢ z
+    → Γ , z ⦂ B , y ⦂ A ⊆ Γ , y ⦂ A , z ⦂ B
+swap y≢z here = there y≢z here
+swap y≢z (there x≢y here) = here
+swap y≢z (there x≢y (there x≢z x∈Γ)) = there x≢z (there x≢y x∈Γ)
+
 sub-pres : ∀ {Γ y b A B V}
     → Γ , y ⦂ A ⊢ b ⦂ B
     → ∅ ⊢ V ⦂ A
@@ -87,9 +122,15 @@ sub-pres (⊢suc   ⊢n)      ⊢V = ⊢suc (sub-pres ⊢n ⊢V)
 sub-pres (⊢zero? ⊢n)      ⊢V = ⊢zero? (sub-pres ⊢n ⊢V)
 sub-pres (⊢if ⊢c ⊢th ⊢el) ⊢V = ⊢if (sub-pres ⊢c ⊢V) (sub-pres ⊢th ⊢V) (sub-pres ⊢el ⊢V)
 sub-pres (⊢app ⊢f ⊢a)     ⊢V = ⊢app (sub-pres ⊢f ⊢V) (sub-pres ⊢a ⊢V)
--- TODO: finish this lemma
-sub-pres (⊢var x∈Γ)       ⊢V = {!   !}
-sub-pres (⊢lam ⊢b)        ⊢V = {!   !}
+sub-pres {y = y} (⊢var {x = x} here) ⊢V with x ≟ y
+... | yes eq = weaken ∅⊆Γ ⊢V
+... | no neq = contradiction refl neq
+sub-pres {y = y} (⊢var {x = x} (there x≢y x∈Γ)) ⊢V with x ≟ y
+... | yes eq = contradiction eq x≢y
+... | no neq = ⊢var x∈Γ
+sub-pres {y = y} (⊢lam {x = x} ⊢b) ⊢V with x ≟ y
+... | yes refl = ⊢lam (weaken drop ⊢b)
+... | no  neq  = ⊢lam (sub-pres (weaken (swap neq) ⊢b) ⊢V)
 
 preserve : ∀ {t t′ : Term} {T : Type}
     → ∅ ⊢ t ⦂ T → t —→ t′
