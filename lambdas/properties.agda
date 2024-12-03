@@ -7,6 +7,7 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.String using (_≟_)
 
 open import Relation.Nullary using (¬_; contradiction; yes; no)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 
 Normal : Term → Set
 Normal t = ∀ {t′ : Term} → ¬ (t —→ t′)
@@ -84,10 +85,8 @@ sub-pres ⊢false           _  = ⊢false
 sub-pres ⊢zero            _  = ⊢zero
 sub-pres (⊢suc   ⊢n)      ⊢V = ⊢suc (sub-pres ⊢n ⊢V)
 sub-pres (⊢zero? ⊢n)      ⊢V = ⊢zero? (sub-pres ⊢n ⊢V)
-sub-pres (⊢if ⊢c ⊢th ⊢el) ⊢V =
-    ⊢if (sub-pres ⊢c ⊢V) (sub-pres ⊢th ⊢V) (sub-pres ⊢el ⊢V)
-sub-pres (⊢app ⊢f ⊢a)     ⊢V =
-    ⊢app (sub-pres ⊢f ⊢V) (sub-pres ⊢a ⊢V)
+sub-pres (⊢if ⊢c ⊢th ⊢el) ⊢V = ⊢if (sub-pres ⊢c ⊢V) (sub-pres ⊢th ⊢V) (sub-pres ⊢el ⊢V)
+sub-pres (⊢app ⊢f ⊢a)     ⊢V = ⊢app (sub-pres ⊢f ⊢V) (sub-pres ⊢a ⊢V)
 -- TODO: finish this lemma
 sub-pres (⊢var x∈Γ)       ⊢V = {!   !}
 sub-pres (⊢lam ⊢b)        ⊢V = {!   !}
@@ -95,18 +94,16 @@ sub-pres (⊢lam ⊢b)        ⊢V = {!   !}
 preserve : ∀ {t t′ : Term} {T : Type}
     → ∅ ⊢ t ⦂ T → t —→ t′
     → ∅ ⊢ t′ ⦂ T
-preserve (⊢if ⊢c ⊢th ⊢el)    if-true                   = ⊢th
-preserve (⊢if ⊢c ⊢th ⊢el)    if-false                  = ⊢el
-preserve (⊢if ⊢c ⊢th ⊢el)    (reduce-if c-step)        =
-    ⊢if (preserve ⊢c c-step) ⊢th ⊢el
-preserve (⊢suc   ⊢n)         (reduce-suc n-step)       = ⊢suc (preserve ⊢n n-step)
-preserve (⊢zero? ⊢n)         zero?-zero                = ⊢true
-preserve (⊢zero? ⊢n)         (zero?-suc n-nv)          = ⊢false
-preserve (⊢zero? ⊢n)         (reduce-zero? n-step)     = ⊢zero? (preserve ⊢n n-step)
-preserve (⊢app ⊢f ⊢a)        (reduce-func f-step)      = ⊢app (preserve ⊢f f-step) ⊢a
-preserve (⊢app ⊢f ⊢a)        (reduce-arg f-val a-step) =
-    ⊢app ⊢f (preserve ⊢a a-step)
-preserve (⊢app (⊢lam ⊢b) ⊢a) (subst a-val) = sub-pres ⊢b ⊢a
+preserve (⊢if ⊢c ⊢th ⊢el)    if-true               = ⊢th
+preserve (⊢if ⊢c ⊢th ⊢el)    if-false              = ⊢el
+preserve (⊢if ⊢c ⊢th ⊢el)    (reduce-if c-step)    = ⊢if (preserve ⊢c c-step) ⊢th ⊢el
+preserve (⊢suc   ⊢n)         (reduce-suc n-step)   = ⊢suc (preserve ⊢n n-step)
+preserve (⊢zero? ⊢n)         zero?-zero            = ⊢true
+preserve (⊢zero? ⊢n)         (zero?-suc n-nv)      = ⊢false
+preserve (⊢zero? ⊢n)         (reduce-zero? n-step) = ⊢zero? (preserve ⊢n n-step)
+preserve (⊢app ⊢f ⊢a)        (reduce-func f-step)  = ⊢app (preserve ⊢f f-step) ⊢a
+preserve (⊢app ⊢f ⊢a)        (reduce-arg _ a-step) = ⊢app ⊢f (preserve ⊢a a-step)
+preserve (⊢app (⊢lam ⊢b) ⊢a) (subst a-val)         = sub-pres ⊢b ⊢a
 
 unstuck : ∀ {t : Term} {T : Type} → ∅ ⊢ t ⦂ T → ¬ (Stuck t)
 unstuck ⊢t (t-normal , t-not-val) with progress ⊢t
